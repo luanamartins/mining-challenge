@@ -1,0 +1,11 @@
+*.lock
+.metadata/
+.recommenders/
+
+*/bin/
+*/.classpath
+*/.project
+*/.settings
+
+/node_modules
+.env
