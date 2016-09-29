@@ -8,7 +8,9 @@ function areProductionTestPair(productionFile, testFile) {
   const productionClassName = getClassName(productionFile);
   const productionClassNameStem = stem(productionClassName);
 
-  return testFile.includes(productionClassNameStem);
+  return productionClassName &&
+         (testFile.includes(productionClassName) ||
+          testFile.includes(productionClassNameStem));
 }
 
 function getProductionTestPairs(productionFiles, testFiles) {

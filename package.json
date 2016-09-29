@@ -4,6 +4,7 @@
   "description": "A module that detects unit test and implementation potential pairs from GitHub",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint **/*.js"
   },
@@ -19,6 +20,7 @@
   "dependencies": {
     "dotenv": "^2.0.0",
     "github-api": "^2.3.0",
+    "lodash": "^4.16.2",
     "stem-porter": "0.0.1"
   }
 }
