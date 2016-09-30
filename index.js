@@ -45,10 +45,10 @@ function getCredentials(fullProjectName){
 
 var mysql = require('mysql');
 var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : '< MySQL username >',
-  password : '< MySQL password >',
-  database : '< MySQL database >'
+  host     : process.env.DATABASE_HOST,
+  user     :  process.env.DATABASE_USER,
+  password : process.env.DATABASE_PASSWORD,
+  database : process.env.DATABASE_SCHEMA_NAME
 });
 
 connection.connect();
