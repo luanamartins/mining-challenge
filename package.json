@@ -21,6 +21,7 @@
     "dotenv": "^2.0.0",
     "github-api": "^2.3.0",
     "lodash": "^4.16.2",
-    "stem-porter": "0.0.1"
+    "stem-porter": "0.0.1",
+    "mysql": "^2.5.4"
   }
 }
