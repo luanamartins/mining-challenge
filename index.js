@@ -1,80 +1,89 @@
-require('dotenv').config({
-  silent: true,
-});
+// https://www.npmjs.com/package/json2csv
 
+require('dotenv').config({
+	silent : true,
+});
 
 function getRepo(author, project) {
 	const GitHub = require('github-api');
 	const github = new GitHub({
-	  token: process.env.GITHUB_OAUTH_TOKEN,
-	});
+			token : process.env.GITHUB_OAUTH_TOKEN,
+		});
 
 	const remoteRepo = github.getRepo(author, project);
 	return remoteRepo;
 }
 
-function getPairsFromCommits(datum) {
-  console.log(datum.row);
+function getPairsFromCommits(language, datum) {
 	const getProductionTestPairsFromCommits = require('./src/get-production-test-pairs-from-commits');
-	
-	//const remoteRepo = getRepo('adamfisk', 'LittleProxy');
+
 	var credentials = getCredentials(datum.gh_project_name);
 	const remoteRepo = getRepo(credentials.author, credentials.projectName);
 
-	//const gitCommit = '7470d0c61e7321a8d2db7e4639408669673c0b31';
 	const gitCommit = datum.git_commit;
-	//console.log("Commit = " + gitCommit + "\n");
-	//const gitCommits = '531cc0f7e36daaef58a1e20820a217b40eb42509#6c0c29bdbd1a8246195ec7e7893cc78a09d8c6bd#8c62dc0dc508218723150dcffbd32d8e1d717335';
 	const gitCommits = datum.git_commits;
-	//console.log("Commits = " + gitCommits + "\n");
 
-	if(gitCommits == undefined){
-    gitCommits = null;
-  }
-	getProductionTestPairsFromCommits(remoteRepo, gitCommit, gitCommits)
-	  .then(productionTestPairs => console.log(productionTestPairs))
-	  .catch(error => console.log(error));
+	if (gitCommits == undefined) {
+		gitCommits = null;
+	}
+  return getProductionTestPairsFromCommits(remoteRepo, gitCommit, gitCommits)
+	.then(productionTestPairs => createObject(language, datum.gh_project_name, productionTestPairs));
 }
 
-function getCredentials(fullProjectName){
+function createObject(language, projectName, productionTestPairs){
+  return {
+      'language' : language,
+      'projectName' : projectName,
+      'productionTestPairs' : productionTestPairs
+  };
+}
+
+
+function getCredentials(fullProjectName) {
 	return {
 		author : fullProjectName.split('/')[0],
-		projectName:  fullProjectName.split('/')[1] 
+		projectName : fullProjectName.split('/')[1]
 	};
 }
 
-var mysql = require('mysql');
-var connection = mysql.createConnection({
-  host     : process.env.DATABASE_HOST,
-  user     :  process.env.DATABASE_USER,
-  password : process.env.DATABASE_PASSWORD,
-  database : process.env.DATABASE_SCHEMA_NAME
-});
+function accessDatabase(){
+  var mysql = require('mysql');
+  var connection = mysql.createConnection({
+      host : process.env.DATABASE_HOST,
+      user : process.env.DATABASE_USER,
+      password : process.env.DATABASE_PASSWORD,
+      database : process.env.DATABASE_SCHEMA_NAME
+    });
 
-connection.connect();
+  connection.connect();
 
-var javaProjectsQuery = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" LIMIT 0,1000';
-var rubyProjectsQuery = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"ruby\" LIMIT 10';
-var countJavaProjects = 'SELECT COUNT(*) from  travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" AND git_commits like \"\"';
-var row37 = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" and row = 37 LIMIT 0,1000';
+  var javaProjectsQuery = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" LIMIT 0, 499';
+  var rubyProjectsQuery = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"ruby\" LIMIT 10';
 
-connection.query(row37,  function(err, rows, fields) {
-  if (!err) {
-    //console.log('The solution is: funfou!');
-	rows.forEach(getPairsFromCommits);
-  } else {
-    console.log('Error while performing Query.');
-  }
-}); 
+  var countJavaProjects = 'SELECT COUNT(*) from  travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" AND git_commits like \"\"';
+  var row37 = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" and row = 37 LIMIT 0,1000';
+
+  var distinctQuery = 'SELECT DISTINCT * FROM travistorrent_7_9_2016  WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" LIMIT 0, 200';
+
+  debugger;
+  connection.query(distinctQuery, function (err, builds, fields) {
+    if (!err) {
+       builds.forEach( function(build){
+              getPairsFromCommits('java', build)
+                .then(function(result){
+                  console.log(result);
+                })
+                .catch(function(error){
+                  console.log(error);
+                });
+          });
+    } else {
+      console.log('Error while performing Query.');
+    }
+  });
+  
+  connection.end();
+}
 
 
-/*
-connection.query(countJavaProjects,  function(err, rows, fields) {
-  if (!err) {
-		console.log(rows);
-  } else {
-    console.log('Error while performing Query.');
-  }
-});
-*/
-connection.end();
+accessDatabase();
