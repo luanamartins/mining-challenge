@@ -49,7 +49,7 @@ function generateListOfRandomNumbers(sizeList, maxNumber){
 }
 
 
-function getSelectedRows(connection, language, projectName){
+function getRandomRows(connection, language, projectName){
   var buildsPerProject = 3;
   
   return getBuildsFromProject(connection, language, projectName)
@@ -78,7 +78,7 @@ function getChosenBuilds(row){
     });
 }
 
-function getSelectedProjects(language, numberOfProjects){
+function getRandomProjects(language, numberOfProjects){
   console.log('Gettting projects ' + language + ', ' + numberOfProjects + ' projects.');
   return new Promise(function(resolve, reject){
     var queryString = 'SELECT distinct gh_project_name from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  ? ORDER BY RAND() LIMIT ?'
@@ -91,12 +91,12 @@ function getSelectedProjects(language, numberOfProjects){
   });
 }
 
-function createPairsForAnalysis(connection, language){
-  //var projects = getSelectedProjects(language, 10);
-  return getSelectedProjects(language, 10)
+function getRandomBuilds(connection, language){
+  //var projects = getRandomProjects(language, 10);
+  return getRandomProjects(language, 10)
   .then(projects => projects.map(function(project){
     console.log('Getting rows');
-	  return getSelectedRows(connection);
+	  return getRandomRows(connection);
   }))
   .then(rows => rows.map(function(row){
       console.log('Getting builds');
@@ -106,7 +106,7 @@ function createPairsForAnalysis(connection, language){
 
 
 connection = createConnection();
-createPairsForAnalysis(connection, 'java')
+getRandomBuilds(connection, 'java')
   .then(function(data){
     console.log('Finished');
     console.log(data);
