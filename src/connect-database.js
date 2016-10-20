@@ -2,6 +2,13 @@ require('dotenv').config({
 	silent : true,
 });
 
+// Única pendência: Trocar lista estática pela execução de uma consulta pra pegar lista de nome de projetos e usar o sampleSize pra pegar uma sublista aleatória
+
+var sampleSize = require('lodash/sampleSize');
+var flatten = require('lodash/flatten');
+
+var allProjects = ['47deg/appsly-android-rest', 'AChep/AcDisplay', 'ActiveJpa/activejpa'];
+
 function createConnection(){
   var mysql = require('mysql');
   var connection = mysql.createConnection({
@@ -15,61 +22,38 @@ function createConnection(){
 }
 
 function getBuildsFromProject(connection, language, projectName){
-  
-  return new Promise(function(resolve, reject) {
-        // The Promise constructor should catch any errors thrown on
-        // this tick. Alternately, try/catch and reject(err) on catch.
+   return new Promise(function(resolve, reject) {
+        var queryString = 'SELECT DISTINCT tr_build_id from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang = \'' + language + '\' AND gh_project_name = \'' + projectName +  '\'';
 
-        var queryString = 'SELECT row from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE ? AND gh_project_name LIKE ?';
-        
-        var queryVariables = [language, projectName];
-
-        connection.query(queryString, queryVariables, function (err, rows, fields) {
-            // Call reject on error states,
-            // call resolve with results
+        connection.query(queryString, function (err, rows) {
             if (err) {
                 return reject(err);
             }
-            resolve(rows);
+           resolve(rows);
         });
     });
   
 }
-
-function generateRandomNumber(maxNumber){
-  return (Math.floor((Math.random() * maxNumber) + 1));
-}
-
-function generateListOfRandomNumbers(sizeList, maxNumber){
-  var list = [];
-  for(var i = 0; i < sizeList; i++){
-    list.push(generateRandomNumber(maxNumber));
-  }
-  return list;
-}
-
 
 function getRandomRows(connection, language, projectName){
   var buildsPerProject = 3;
   
   return getBuildsFromProject(connection, language, projectName)
   .then(function(rowDataPackets){
-    var list = generateListOfRandomNumbers(buildsPerProject, rowDataPackets.length);
-    var chosenBuildsList = [];
-    list.forEach(value => {
-      chosenBuildsList.push(rowDataPackets[value]);
-    });
-    
+    var buildIds = rowDataPackets.map(rowDataPacket => rowDataPacket.tr_build_id);
+    var list = sampleSize(buildIds, buildsPerProject);
+    console.log("LISTAA: " + list);
+    return list;
   });
 }
 
-function getChosenBuilds(row){
+function getChosenBuilds(id){
   
   return new Promise(function(resolve, reject) {
-        var queryString = 'SELECT * from travistorrent_7_9_2016 WHERE row = ?';
-        var queryVariables = [row];
+        var queryString = 'SELECT git_commit, git_commits from travistorrent_7_9_2016 WHERE tr_build_id = \'' + id + '\' LIMIT 1';
         
-        connection.query(queryString, queryVariables, function (err, rows, fields) {
+        console.log(queryString);
+        connection.query(queryString, function (err, rows) {
             if (err) {
                 return reject(err);
             }
@@ -78,8 +62,10 @@ function getChosenBuilds(row){
     });
 }
 
+
+// sampleSize
 function getRandomProjects(language, numberOfProjects){
-  console.log('Gettting projects ' + language + ', ' + numberOfProjects + ' projects.');
+  console.log('Getting projects ' + language + ', ' + numberOfProjects + ' projects.');
   return new Promise(function(resolve, reject){
     var queryString = 'SELECT distinct gh_project_name from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  ? ORDER BY RAND() LIMIT ?'
     var queryVariables = [language, numberOfProjects];
@@ -92,31 +78,31 @@ function getRandomProjects(language, numberOfProjects){
 }
 
 function getRandomBuilds(connection, language){
-  //var projects = getRandomProjects(language, 10);
-  return getRandomProjects(language, 10)
+  
+  return Promise.resolve(allProjects)
   .then(projects => projects.map(function(project){
-    console.log('Getting rows');
-	  return getRandomRows(connection);
+	  console.log('Getting rows');
+	  return getRandomRows(connection, language, project);
   }))
-  .then(rows => rows.map(function(row){
-      console.log('Getting builds');
-		  return getChosenBuilds(row)
-	  }));
+  .then(coisa => Promise.all(coisa))
+  .then(flatten)
+  .then(rows => 
+      rows.map(function(row){
+        console.log('Getting builds');
+        return getChosenBuilds(row)
+      })
+  )
+   .then(coisa => Promise.all(coisa))
+   .catch(console.log);
 }
-
 
 connection = createConnection();
 getRandomBuilds(connection, 'java')
-  .then(function(data){
-    console.log('Finished');
-    console.log(data);
-    console.log('Connection closed!');
+  .then(function(builds){
+    console.log(builds);
     connection.end();
+    console.log('finished');
   })
-  .catch(function(error){
-    console.log(error);
-  });
-//connection.end();
-//chosenBuildsRowNumbers('java', 'tinkerpop/gremlin');
+  .catch(console.log);
 
 
