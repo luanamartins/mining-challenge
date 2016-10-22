@@ -1,5 +1,8 @@
 // https://www.npmjs.com/package/json2csv
 
+var json2csv = require('json2csv');
+var fs = require('fs');
+
 require('dotenv').config({
 	silent : true,
 });
@@ -7,27 +10,27 @@ require('dotenv').config({
 function getRepo(author, project) {
 	const GitHub = require('github-api');
 	const github = new GitHub({
-			token : process.env.GITHUB_OAUTH_TOKEN,
-		});
+	  token : process.env.GITHUB_OAUTH_TOKEN,
+	});
 
 	const remoteRepo = github.getRepo(author, project);
 	return remoteRepo;
 }
 
-function getPairsFromCommits(language, datum) {
-	const getProductionTestPairsFromCommits = require('./src/get-production-test-pairs-from-commits');
+function getPairsFromCommits(language, build) {
+  const getProductionTestPairsFromCommits = require('./src/get-production-test-pairs-from-commits');
 
-	var credentials = getCredentials(datum.gh_project_name);
+	var credentials = getCredentials(build.gh_project_name);
 	const remoteRepo = getRepo(credentials.author, credentials.projectName);
 
-	const gitCommit = datum.git_commit;
-	const gitCommits = datum.git_commits;
+	const gitCommit = build.git_commit;
+	var gitCommits = build.git_commits;
 
 	if (gitCommits == undefined) {
 		gitCommits = null;
 	}
   return getProductionTestPairsFromCommits(remoteRepo, gitCommit, gitCommits)
-	.then(productionTestPairs => createObject(language, datum.gh_project_name, productionTestPairs));
+	.then(productionTestPairs => createObject(language, build.gh_project_name, productionTestPairs));
 }
 
 function createObject(language, projectName, productionTestPairs){
@@ -38,52 +41,31 @@ function createObject(language, projectName, productionTestPairs){
   };
 }
 
-
-function getCredentials(fullProjectName) {
-	return {
-		author : fullProjectName.split('/')[0],
-		projectName : fullProjectName.split('/')[1]
-	};
+function getPairs(builds){
+     var list = [];
+     for(var i = 0; i < builds.length; i++){
+        list.push(getPairsFromCommits('java', builds[i]));
+     }
+      return list;
 }
 
-function accessDatabase(){
-  var mysql = require('mysql');
-  var connection = mysql.createConnection({
-      host : process.env.DATABASE_HOST,
-      user : process.env.DATABASE_USER,
-      password : process.env.DATABASE_PASSWORD,
-      database : process.env.DATABASE_SCHEMA_NAME
-    });
-
-  connection.connect();
-
-  var javaProjectsQuery = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" LIMIT 0, 499';
-  var rubyProjectsQuery = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"ruby\" LIMIT 10';
-
-  var countJavaProjects = 'SELECT COUNT(*) from  travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" AND git_commits like \"\"';
-  var row37 = 'SELECT * from travistorrent_7_9_2016 WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" and row = 37 LIMIT 0,1000';
-
-  var distinctQuery = 'SELECT DISTINCT * FROM travistorrent_7_9_2016  WHERE gh_test_churn > 0 AND gh_lang LIKE  \"java\" LIMIT 0, 200';
-
-  debugger;
-  connection.query(distinctQuery, function (err, builds, fields) {
-    if (!err) {
-       builds.forEach( function(build){
-              getPairsFromCommits('java', build)
-                .then(function(result){
-                  console.log(result);
-                })
-                .catch(function(error){
-                  console.log(error);
-                });
-          });
-    } else {
-      console.log('Error while performing Query.');
-    }
-  });
-  
-  connection.end();
+function getFilenames(){ 
+  const getRowDataPackets = require('./src/connect-database');
+  //console.log('teste');
+  console.log(getRowDataPackets);
+  return getRowDataPackets()
+  .then(Promise.all(getPairs));
 }
 
+function run(){
+  console.log('Started');
+  getFilenames()
+  .then(console.log)
+  .then(console.log('Finished'))
+  .catch(console.log);
+}
 
-accessDatabase();
+run();
+
+
+
