@@ -11,8 +11,7 @@ require('dotenv').config({
 function getRepo(author, project) {
 	const GitHub = require('github-api');
 	const github = new GitHub({
-	  //token : process.env.GITHUB_OAUTH_TOKEN,
-    token : 'c02981283e6623a9490b84c0f6c04eddb8b144a4'
+	  token : process.env.GITHUB_OAUTH_TOKEN,
 	});
 
 	const remoteRepo = github.getRepo(author, project);
@@ -48,8 +47,6 @@ function createObject(language, projectName, productionTestPairs){
       'language' : language,
       'projectName' : projectName,
       'productionTestPairs' : productionTestPairs
-      //'production file' : productionTestPairs.productionFile,
-     // 'test file': productionTestPairs.testFile
   };
 }
 
@@ -92,10 +89,8 @@ function processBuildsForWriteOnFile(arrayOfBuilds){
 function process(object){
   
   var pairs = object.productionTestPairs;
-  //console.log("Pairs " + JSON.stringify(pairs));
   var list = [];
   pairs.forEach(function(value){
-    //console.log("Value " +  JSON.stringify(value));
     list.push({
       'projectName' : object.projectName,
       'language': object.language,
@@ -105,13 +100,6 @@ function process(object){
   });
   console.log("LISTAA \n" + JSON.stringify(list));
   return list;
-   /*return {
-      'project name' : object.projectName,
-      'language': object.language,
-      'productionTestPairs' : productionTestPairs
-      //'production file': object.productionTestPairs[0].productionFile, // MAYBE FIX
-      //'test file': object.productionTestPairs[0].testFile, // MAYBE FIX
-    }*/
 }
 
 function writeBuildsOnFile(){
@@ -129,12 +117,12 @@ function writeBuildsOnFile(){
 function run(){
   console.log('Started');
   writeBuildsOnFile()
-  .then(console.log('Finished'))
-  .then(console.timeEnd("execution"))
+  //.then(console.log('Finished'))
+  //.then(console.timeEnd("execution"))
   .catch(console.log);
 }
 
-console.time("execution");
+//console.time("execution");
 run();
 
 
