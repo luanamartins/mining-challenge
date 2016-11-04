@@ -81,12 +81,12 @@ function getBuildsWithTests(){
 function populateTable(){
 	return getBuildsWithoutTests()
 	.then(buildIds => Promise.all(insertBuilds(buildIds, 0)))
-	.then(getBuildsWithTests)
+	.then(() => getBuildsWithTests())
 	.then(buildIds2 => Promise.all(insertBuilds(buildIds2, null)))
 	.catch(console.log);
 }
 
 createTable()
-.then(populateTable())
+.then(() => populateTable())
 .then(() => connection.end())
 .catch(console.log);
