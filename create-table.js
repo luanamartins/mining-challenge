@@ -88,5 +88,5 @@ function populateTable(){
 
 createTable()
 .then(populateTable())
-.then(connection.end)
+.then(() => connection.end())
 .catch(console.log);
