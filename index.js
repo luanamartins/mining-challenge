@@ -107,10 +107,6 @@ function writeBuildsOnFile(){
   return getBuildData()
   .then(builds => Promise.all(getPairs(builds)))
   .then(processBuildsForWriteOnFile)
-  // Testar algum cenário que retorne pares de produção e teste não vazios
-  // Verificar se o array de productionTestPairs irá retornar mais de um conjunto
-  // Ajeitar o código de geração do arquivo csv
-  // O código gera "Finished" antes de concluir a execução de writeBuildsOnFile
   .then(writeOnFile)
 }
 
