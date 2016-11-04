@@ -19,7 +19,7 @@ function createConnection(){
 
 function createTable(){
 		return new Promise(function(resolve, reject) {
-		var createQuery = 'CREATE TABLE table_aux1_' + language + '(tr_build_id bigint(20) unique, is_tdd bit NULL);';
+		var createQuery = 'CREATE OR REPLACE TABLE table_aux1_' + language + '(tr_build_id bigint(20) unique, is_tdd bit NULL);';
 		connection.query(createQuery, function (err, rows) {
 				if (err) {
 					console.log('Deu ruim, ' + err);
