@@ -20,9 +20,10 @@
   "dependencies": {
     "dotenv": "^2.0.0",
     "github-api": "^2.3.0",
+    "json2csv": "^3.7.0",
     "lodash": "^4.16.2",
-    "stem-porter": "0.0.1",
     "mysql": "^2.5.4",
-    "json2csv": "^3.7.0" 
+    "stem-porter": "0.0.1",
+    "tdd-detector": "^1.0.4"
   }
 }
