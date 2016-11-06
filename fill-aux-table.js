@@ -13,7 +13,7 @@ const commits = ['59f5f9c484164fc394cd5d34485ad7f4c37bc21e', '63d6fe90f434533b5a
 */
 
 function isTDD(projectAuthor, projectName, language, commits, buildId){
-	tddDetector.isTDDUsed(projectAuthor, projectName, language, commits)
+	return tddDetector.isTDDUsed(projectAuthor, projectName, language, commits)
 		.then(result => {
       var valueToUpdate;
       
@@ -121,5 +121,5 @@ connection = createConnection();
 getAllBuildsToEvaluate()
 .then(builds => Promise.all(runToBuilds(builds)))
 .then(information => Promise.all(evaluateBuilds(information)))
-//.then(() => connection.end())
+.then(() => connection.end())
 .catch(console.log);
