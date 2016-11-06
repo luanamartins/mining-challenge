@@ -5,6 +5,10 @@ require('dotenv').config({
 const TDDDetector = require('tdd-detector');
 const tddDetector = new TDDDetector(process.env.GITHUB_OAUTH_TOKEN);
 
+BATCH_SIZE = 20;
+LANGUAGE = 'java';
+
+
 /*
 const projectAuthor = 'google';
 const projectName = 'closure-compiler';
@@ -28,7 +32,7 @@ function isTDD(projectAuthor, projectName, language, commits, buildId){
       return valueToUpdate;
 		})
     .then(value => {
-        var updateQuery = 'UPDATE table_aux1_java SET is_tdd = ' + value + ' where tr_build_id = ' + buildId + ';';
+        var updateQuery = 'UPDATE table_aux1_' + LANGUAGE + ' SET is_tdd = ' + value + ' where tr_build_id = ' + buildId + ';';
         console.log(updateQuery);
         connection.query(updateQuery, function(err, rows) {
           if(err)
@@ -40,7 +44,7 @@ function isTDD(projectAuthor, projectName, language, commits, buildId){
 
 function getAllBuildsToEvaluate(){
     return new Promise(function(resolve, reject) {
-      var selectQuery = 'SELECT * FROM table_aux1_java where is_tdd is null;';
+      var selectQuery = 'SELECT * FROM table_aux1_' + LANGUAGE + ' where is_tdd is null LIMIT ' + BATCH_SIZE + ';';
       connection.query(selectQuery, function (err, rows) {
           if (err) {
             console.log('Deu ruim, ' + err);
@@ -53,7 +57,7 @@ function getAllBuildsToEvaluate(){
 
 function getBuildInformation(buildId){
     return new Promise(function(resolve, reject) {
-      var selectQuery = 'SELECT gh_project_name, gh_lang, git_commit, git_commits, tr_build_id from travistorrent_7_9_2016 where tr_build_id = ' + buildId + ' limit 1;';
+      var selectQuery = 'SELECT gh_project_name, gh_lang, git_commit, git_commits, tr_build_id from travistorrent_7_9_2016 where tr_build_id = ' + buildId + ' and gh_lang = \''+ LANGUAGE + '\' limit 1;';
       connection.query(selectQuery, function (err, rows) {
           if (err) {
             console.log('Deu ruim, ' + err);
