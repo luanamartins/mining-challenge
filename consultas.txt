@@ -18,3 +18,20 @@ INNER JOIN (SELECT tr_build_id, gh_project_name
 	FROM travistorrent_7_9_2016
 	WHERE gh_test_churn > 0) PROJ
 ON AUX.tr_build_id = PROJ.tr_build_id;
+
+
+
+
+-- # builds
+select count(distinct tr_build_id) from travistorrent_7_9_2016 where gh_project_name = '47deg/appsly-android-rest;
+
+
+-- # builds with tdd
+select count(distinct tr_build_id) from table_aux1_java
+where is_tdd = 1 and tr_build_id in 
+(select distinct tr_build_id from travistorrent_7_9_2016 where gh_project_name = '47deg/appsly-android-rest');
+
+-- # builds test change
+select count(*) from table_aux1_java
+where tr_build_id in 
+(select distinct tr_build_id from travistorrent_7_9_2016 where gh_project_name = '47deg/appsly-android-rest' and gh_test_churn > 0);
