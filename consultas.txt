@@ -1,0 +1,20 @@
+-- all builds  from a project
+select count(distinct tr_build_id) from travistorrent_7_9_2016 where gh_project_name = '47deg/appsly-android-rest' limit 20;
+
+-- all builds  from a project and is_tdd = true
+select count(distinct tr_build_id) from table_aux1_java
+where is_tdd = 1 and tr_build_id in 
+(select distinct tr_build_id from travistorrent_7_9_2016 where gh_project_name = '47deg/appsly-android-rest');
+
+
+-- all builds with test changes
+select tr_build_id, is_tdd from table_aux1_java
+where tr_build_id in 
+(select distinct tr_build_id from travistorrent_7_9_2016 where gh_project_name = '47deg/appsly-android-rest' and gh_test_churn > 0);
+
+SELECT AUX.tr_build_id, AUX.is_tdd, PROJ.gh_project_name 
+FROM table_aux1_java AUX
+INNER JOIN (SELECT tr_build_id, gh_project_name
+	FROM travistorrent_7_9_2016
+	WHERE gh_test_churn > 0) PROJ
+ON AUX.tr_build_id = PROJ.tr_build_id;
