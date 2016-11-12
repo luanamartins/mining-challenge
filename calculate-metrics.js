@@ -38,7 +38,7 @@ function createTable(){
 
 function fillProjectNamesOnTable(){
     return new Promise(function(resolve, reject) {
-      var selectQuery = 'SELECT distinct gh_project_name FROM ' + MAIN_TABLE_NAME + ' LIMIT 2;'; // DELETE LIMIT
+      var selectQuery = 'SELECT distinct gh_project_name FROM ' + MAIN_TABLE_NAME + ' WHERE gh_lang = ' + LANGUAGE + ' LIMIT 2;'; // DELETE LIMIT
       connection.query(selectQuery, function (err, rows) {
           if (err) {
             console.log('Deu ruim, ' + err);
