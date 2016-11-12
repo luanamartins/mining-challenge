@@ -96,7 +96,7 @@ function calculateMetrics(projectName){
                 reject(err);
             }
             console.log(rows);
-            resAux.buildsWithTdd = rows.buildsWithTdd;
+            resAux.buildsWithTdd = rows[0].buildsWithTdd;
             resolve(resAux);
         });
       })
@@ -109,7 +109,7 @@ function calculateMetrics(projectName){
                   reject(err);
               }
              console.log(rows);
-             resAux.totalBuilds = rows.totalBuilds;
+             resAux.totalBuilds = rows[0].totalBuilds;
               resolve(resAux);
             });
         });
@@ -122,18 +122,24 @@ function calculateMetrics(projectName){
                   reject(err);
               }
              console.log(rows);
-             resAux.buildsWithTestChanges = rows.buildsWithTestChanges;
+             resAux.buildsWithTestChanges = rows[0].buildsWithTestChanges;
               resolve(resAux);
             });
         });
       })
-      .then(
+      .then(() => {
+          
+          console.log(resAux);
+          var metric1Value = resAux.buildsWithTdd / resAux.totalBuilds;
+          var metric2Value = resAux.buildsWithTdd / resAux.buildsWithTestChanges;
+          metric2Value = metric2Value ? metric2Value : 0;
+          
           return {
             project_name: projectName,
-            metric1: resAux.buildsWithTdd / resAux.totalBuilds,
-            metric2: resAux.buildsWithTdd / resAux.buildsWithTestChanges
+            metric1: metric1Value,
+            metric2: metric2Value
           }
-      );
+      });
       
       /*var mock = {
         project_name: projectName,
