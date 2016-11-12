@@ -38,7 +38,7 @@ function createTable(){
 
 function fillProjectNamesOnTable(){
     return new Promise(function(resolve, reject) {
-      var selectQuery = 'SELECT distinct gh_project_name FROM ' + MAIN_TABLE_NAME + ' WHERE gh_lang = ' + LANGUAGE + ' LIMIT 2;'; // DELETE LIMIT
+      var selectQuery = 'SELECT distinct gh_project_name FROM ' + MAIN_TABLE_NAME + ' WHERE gh_lang = \'' + LANGUAGE + '\' LIMIT 2;'; // DELETE LIMIT
       connection.query(selectQuery, function (err, rows) {
           if (err) {
             console.log('Deu ruim, ' + err);
@@ -79,27 +79,63 @@ function fillMetricsOnTable(metricsObject){
 }
 
 function calculateMetrics(projectName){
-    var buildsWithTDDQuery = 'SELECT COUNT(distinct tr_build_id) FROM ' + TABLE_AUX1_NAME + ' where is_tdd = 1 AND tr_build_id IN  (SELECT distinct tr_build_id FROM ' + MAIN_TABLE_NAME + ' WHERE gh_project_name = \'' + projectName + '\' LIMIT 30);' // DELETE LIMIT
+    var buildsWithTDDQuery = 'SELECT COUNT(distinct t.tr_build_id) as buildsWithTdd  FROM ' + MAIN_TABLE_NAME + ' t, table_aux1_java a WHERE t.tr_build_id = a.tr_build_id and t.gh_project_name = \'' + projectName + '\' and a.is_tdd = 1 LIMIT 10;' // DELETE LIMIT
      
-    var buildsQuery = 'SELECT COUNT(distinct tr_build_id) FROM ' + MAIN_TABLE_NAME + ' WHERE gh_project_name = \'' + projectName + '\';';
+    var buildsQuery = 'SELECT COUNT(distinct tr_build_id) as totalBuilds FROM ' + MAIN_TABLE_NAME + ' WHERE gh_project_name = \'' + projectName + '\' LIMIT 10';   // DELETE LIMIT
     
-    var buildsWithTestChangesQuery = 'SELECT COUNT(*) FROM ' + TABLE_AUX1_NAME + ' where tr_build_id IN  (SELECT distinct tr_build_id FROM ' + MAIN_TABLE_NAME + ' WHERE gh_project_name = \'' + projectName + '\' and gh_test_churn > 0);'
+    var buildsWithTestChangesQuery = 'SELECT COUNT(distinct t.tr_build_id) as buildsWithTestChanges FROM ' + MAIN_TABLE_NAME + ' t, ' + TABLE_AUX1_NAME + ' a WHERE t.tr_build_id = a.tr_build_id and t.gh_project_name = \'' + projectName + '\' and t.gh_test_churn > 0 LIMIT 10;' // DELETE LIMIT
     
     var result = {};
+    var resAux = {};
     
-    /*return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
         connection.query(buildsWithTDDQuery, function(err, rows){
-        if (err) {
-            console.log('Deu ruim, ' + err);
-            reject(err);
-          }
-          console.log(rows);
-          resolve(rows);
+            console.log(buildsWithTDDQuery);
+            if (err) {
+                console.log('Deu ruim, ' + err);
+                reject(err);
+            }
+            console.log(rows);
+            resAux.buildsWithTdd = rows.buildsWithTdd;
+            resolve(resAux);
         });
-        //.then(numberOfBuilds => );
-      });*/
+      })
+      .then(res => {
+        console.log(buildsQuery);
+        return new Promise(function(resolve, reject) {
+            connection.query(buildsQuery, function(err, rows){
+              if (err) {
+                  console.log('Deu ruim, ' + err);
+                  reject(err);
+              }
+             console.log(rows);
+             resAux.totalBuilds = rows.totalBuilds;
+              resolve(resAux);
+            });
+        });
+      })
+      .then(res2 => {
+         return new Promise(function(resolve, reject) {
+            connection.query(buildsWithTestChangesQuery, function(err, rows){
+              if (err) {
+                  console.log('Deu ruim, ' + err);
+                  reject(err);
+              }
+             console.log(rows);
+             resAux.buildsWithTestChanges = rows.buildsWithTestChanges;
+              resolve(resAux);
+            });
+        });
+      })
+      .then(
+          return {
+            project_name: projectName,
+            metric1: resAux.buildsWithTdd / resAux.totalBuilds,
+            metric2: resAux.buildsWithTdd / resAux.buildsWithTestChanges
+          }
+      );
       
-      var mock = {
+      /*var mock = {
         project_name: projectName,
         metric1: 2,
         metric2: 3
@@ -107,7 +143,7 @@ function calculateMetrics(projectName){
       
       console.log('Metric object: ' + JSON.stringify(mock));
       return Promise.resolve(mock);
-    
+    */
 }
 
 function listOfProjectNamePromises(projects){
