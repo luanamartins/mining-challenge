@@ -7,6 +7,7 @@ const tddDetector = new TDDDetector(process.env.GITHUB_OAUTH_TOKEN);
 
 BATCH_SIZE = 20;
 LANGUAGE = 'java';
+schemaName = 'travistorrent_27_10_2016';
 
 
 function isTDD(projectAuthor, projectName, language, commits, buildId){
@@ -50,7 +51,7 @@ function getAllBuildsToEvaluate(){
 
 function getBuildInformation(buildId){
     return new Promise(function(resolve, reject) {
-      var selectQuery = 'SELECT gh_project_name, gh_lang, git_commit, git_commits, tr_build_id from travistorrent_7_9_2016 where tr_build_id = ' + buildId + ' and gh_lang = \''+ LANGUAGE + '\' limit 1;';
+      var selectQuery = 'SELECT gh_project_name, gh_lang, git_commit, git_commits, tr_build_id from ' + schemaName + ' where tr_build_id = ' + buildId + ' and gh_lang = \''+ LANGUAGE + '\' limit 1;';
       connection.query(selectQuery, function (err, rows) {
           if (err) {
             console.log('Deu ruim, ' + err);
