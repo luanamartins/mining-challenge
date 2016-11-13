@@ -85,7 +85,7 @@ function fillMetricsOnTable(metricsObject){
 }
 
 function calculateMetrics(projectName){
-    var buildsWithTDDQuery = 'SELECT COUNT(distinct t.tr_build_id) as buildsWithTdd  FROM ' + MAIN_TABLE_NAME + ' t, table_aux1_java a WHERE t.tr_build_id = a.tr_build_id and t.gh_project_name = \'' + projectName + '\' and a.is_tdd = 1;'
+    var buildsWithTDDQuery = 'SELECT COUNT(distinct t.tr_build_id) as buildsWithTdd  FROM ' + MAIN_TABLE_NAME + ' t, ' + TABLE_AUX1_NAME + ' a WHERE t.tr_build_id = a.tr_build_id and t.gh_project_name = \'' + projectName + '\' and a.is_tdd = 1;'
      
     var buildsQuery = 'SELECT COUNT(distinct tr_build_id) as totalBuilds FROM ' + MAIN_TABLE_NAME + ' WHERE gh_project_name = \'' + projectName + '\';';
     
