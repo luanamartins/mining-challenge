@@ -3,7 +3,9 @@ require('dotenv').config({
 });
 
 connection = createConnection();
+mainTableName = 'travistorrent_27_10_2016';
 language = 'java';
+isTdd = 1;
 
 function createConnection(){
   var mysql = require('mysql');
@@ -48,7 +50,7 @@ function insertBuilds(builds, isTdd){
 }
 
 function getBuildsWithoutTests(){
-	var query = 'SELECT distinct tr_build_id from travistorrent_7_9_2016 where gh_test_churn = 0 and gh_lang = \'' + language +'\' LIMIT 20;';
+	var query = 'SELECT distinct tr_build_id from ' + mainTableName + ' where gh_test_churn = 0 and gh_lang = \'' + language +'\' LIMIT 20;';
 	//console.log(query);
 	return new Promise(function(resolve, reject){
 		connection.query(query, function(err, rows){
@@ -64,7 +66,7 @@ function getBuildsWithoutTests(){
 }
 
 function getBuildsWithTests(){
-	var query = 'SELECT distinct tr_build_id from travistorrent_7_9_2016 where gh_test_churn > 0 and gh_lang = \'' + language +'\' LIMIT 20;';
+	var query = 'SELECT distinct tr_build_id from '  + mainTableName + ' where gh_test_churn > 0 and gh_lang = \'' + language +'\' LIMIT 20;';
 	//console.log(query);
 	return new Promise(function(resolve, reject){
 		connection.query(query, function(err, rows){
@@ -81,7 +83,7 @@ function getBuildsWithTests(){
 
 function populateTable(){
 	return getBuildsWithoutTests()
-	.then(buildIds => Promise.all(insertBuilds(buildIds, 0)))
+	.then(buildIds => Promise.all(insertBuilds(buildIds, !isTdd)))
 	.then(() => getBuildsWithTests())
 	.then(buildIds2 => Promise.all(insertBuilds(buildIds2, null)))
 	.catch(console.log);
