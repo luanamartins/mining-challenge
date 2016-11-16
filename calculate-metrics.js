@@ -3,7 +3,7 @@ require('dotenv').config({
 });
 
 
-LANGUAGE = 'java';
+LANGUAGE = 'ruby';
 TABLE_NAME = 'table_aux2_' + LANGUAGE;
 TABLE_AUX1_NAME = 'table_aux1_' + LANGUAGE;
 MAIN_TABLE_NAME = 'travistorrent_7_9_2016';
