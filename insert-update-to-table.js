@@ -74,6 +74,6 @@ function populateTable(){
 	.catch(console.log);
 }
 
-populateTable())
+populateTable()
 .then(() => connection.end())
 .catch(console.log);
